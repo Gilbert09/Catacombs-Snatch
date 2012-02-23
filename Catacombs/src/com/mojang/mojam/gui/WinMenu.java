@@ -15,7 +15,7 @@ public class WinMenu extends GuiMenu {
         this.winningPlayer = winningPlayer;
         this.gameWidth = gameWidth;
 
-        addButton(new Button(TitleMenu.RESTART_GAME_ID, 1, (gameWidth - 128) / 2, 200));
+        addButton(new Button(TitleMenu.RESTART_GAME_ID, "Exit", (gameWidth - 128) / 2, 200));
     }
 
     public void render(Screen screen) {
@@ -35,10 +35,6 @@ public class WinMenu extends GuiMenu {
         screen.blit(Art.herrSpeck[0][6], (gameWidth - 128) / 2 - 40, 190 + selectedItem * 40);
     }
 
-    @Override
-    public void buttonPressed(Button button) {
-    }
-
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
             buttons.get(selectedItem).postClick();
@@ -50,5 +46,11 @@ public class WinMenu extends GuiMenu {
 
     public void keyTyped(KeyEvent arg0) {
     }
+
+	@Override
+	public void buttonPressed(ClickableComponent button) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

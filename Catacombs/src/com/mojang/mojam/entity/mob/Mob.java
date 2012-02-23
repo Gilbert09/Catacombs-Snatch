@@ -135,6 +135,7 @@ public abstract class Mob extends Entity {
 
         // @todo maybe not have the rendering of carried item here..
         renderCarrying(screen, 0);
+        if (health != maxHealth) addHealthBar(screen);
     }
 
     protected void renderCarrying(Screen screen, int yOffs) {
@@ -142,6 +143,16 @@ public abstract class Mob extends Entity {
         Bitmap image = carrying.getSprite();
         screen.blit(image, carrying.pos.x - image.w / 2, carrying.pos.y - image.h + 8 + yOffs);// image.h
 // / 2 - 8);
+    }
+    
+    private void addHealthBar(Screen screen) {
+    	int barWidth = 30;
+    	int barHeight = 2;
+    	int start = health * barWidth / maxHealth;
+    	Bitmap bar = new Bitmap(barWidth, barHeight);
+    	bar.clear(0xff00ff00);
+    	bar.fill(start, 0, barWidth - start, barHeight, 0xffff0000);
+    	screen.blit(bar, pos.x - (barWidth / 2), pos.y + 10);
     }
 
     public abstract Bitmap getSprite();

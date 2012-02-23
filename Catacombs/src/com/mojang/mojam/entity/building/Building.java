@@ -69,8 +69,7 @@ public class Building extends Mob implements IUsable {
     public void slideMove(double xa, double ya) {
         super.move(xa, ya);
     }
-
-
+    
     //
     // Upgrade
     //

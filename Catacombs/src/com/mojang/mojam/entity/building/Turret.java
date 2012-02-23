@@ -1,5 +1,6 @@
 package com.mojang.mojam.entity.building;
 
+import java.awt.Color;
 import java.util.Set;
 
 import com.mojang.mojam.entity.*;
@@ -37,6 +38,21 @@ public class Turret extends Building {
     }
 
     public void init() {
+    }
+    
+    public void render(Screen screen) {
+    	super.render(screen);
+    	addHealthBar(screen);
+    }
+    
+    private void addHealthBar(Screen screen) {
+    	int barWidth = 30;
+    	int barHeight = 2;
+    	int start = health * barWidth / maxHealth;
+    	Bitmap bar = new Bitmap(barWidth, barHeight);
+    	bar.clear(0xff00ff00);
+    	bar.fill(start, 0, barWidth - start, barHeight, 0xffff0000);
+    	screen.blit(bar, pos.x - (barWidth / 2), pos.y + 10);
     }
 
     public void tick() {

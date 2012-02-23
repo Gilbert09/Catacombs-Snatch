@@ -36,6 +36,8 @@ public class InputHandler implements KeyListener {
         mappings.put(KeyEvent.VK_Z, keys.use);
 		mappings.put(KeyEvent.VK_R, keys.build);
 		mappings.put(KeyEvent.VK_E, keys.use);
+		
+		mappings.put(KeyEvent.VK_ESCAPE, keys.escape);
 	}
 
 	public void keyPressed(KeyEvent ke) {

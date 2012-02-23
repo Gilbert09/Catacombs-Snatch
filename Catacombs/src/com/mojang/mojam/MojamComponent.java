@@ -19,6 +19,7 @@ import com.mojang.mojam.level.Level;
 import com.mojang.mojam.level.tile.Tile;
 import com.mojang.mojam.network.*;
 import com.mojang.mojam.network.packet.*;
+import com.mojang.mojam.screen.Bitmap;
 import com.mojang.mojam.screen.Screen;
 import com.mojang.mojam.sound.SoundPlayer;
 
@@ -30,6 +31,7 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
     public static final int SCALE = 2;
     public static boolean pause = false;
     private boolean running = true;
+    private boolean paused;
     private Cursor emptyCursor;
     private double framerate = 60;
     private int fps;
@@ -127,7 +129,8 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
         }
         setFocusTraversalKeysEnabled(false);
         requestFocus();
-
+        
+        setCursor(emptyCursor);
     }
 
     private synchronized void createLevel() {
@@ -136,15 +139,16 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
         } catch (Exception ex) {
             throw new RuntimeException("Unable to load level", ex);
         }
-
+        pause = false;
         level.init();
+        
 
-        players[0] = new Player(synchedKeys[0], level.width * Tile.WIDTH / 2 - 16, (level.height - 5 - 1) * Tile.HEIGHT - 16, Team.Team1);
+        players[0] = new Player(synchedKeys[0], mouseButtons, level.width * Tile.WIDTH / 2 - 16, (level.height - 5 - 1) * Tile.HEIGHT - 16, Team.Team1);
         players[0].setFacing(4);
         level.addEntity(players[0]);
         level.addEntity(new Base(34 * Tile.WIDTH, 7 * Tile.WIDTH, Team.Team1));
         if (isMultiplayer) {
-            players[1] = new Player(synchedKeys[1], level.width * Tile.WIDTH / 2 - 16, 7 * Tile.HEIGHT - 16, Team.Team2);
+            players[1] = new Player(synchedKeys[1], mouseButtons, level.width * Tile.WIDTH / 2 - 16, 7 * Tile.HEIGHT - 16, Team.Team2);
 //            players[1] = new Player(synchedKeys[1], 10, 10);
             level.addEntity(players[1]);
             level.addEntity(new Base(32 * Tile.WIDTH - 20, 32 * Tile.WIDTH - 20, Team.Team2));
@@ -287,6 +291,7 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
         g.clipRect(0, 0, GAME_WIDTH * SCALE, GAME_HEIGHT * SCALE);
 
         if (!menuStack.isEmpty() || level != null) {
+        	renderMouse(screen, mouseButtons);
             g.drawImage(screen.image, 0, 0, GAME_WIDTH * SCALE, GAME_HEIGHT * SCALE, null);
         }
 
@@ -297,40 +302,41 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
 //        g.drawString(msg, 10, 10);
 
     }
+    
+    private void renderMouse(Screen screen, MouseButtons mouseButton) {
+    	if (mouseHidden) return;
+    	int crosshairSize = 15;
+    	int crosshairSizeHalf = crosshairSize /2;
+    	Bitmap marker = new Bitmap(crosshairSize, crosshairSize);
+    	
+    	for (int i = 0; i <crosshairSize; i++) {
+    		if (i >= crosshairSizeHalf - 1 && i <= crosshairSizeHalf +1) continue;
+    		marker.pixels[crosshairSizeHalf + i * crosshairSize] = 0xffffffff;
+    		marker.pixels[i + crosshairSizeHalf * crosshairSize] = 0xffffffff;
+    	}
+    	screen.blit( marker, mouseButtons.getX() / SCALE - crosshairSizeHalf - 2, mouseButtons.getY() / SCALE - crosshairSizeHalf - 2 );
+    }
 
     private void tick() {
-        if (level != null) {
-            if (level.player1Score >= Level.TARGET_SCORE) {
+        
+    	if (level != null) {
+    		if (level.player1Score >= Level.TARGET_SCORE) {
                 addMenu(new WinMenu(GAME_WIDTH, GAME_HEIGHT, 1));
                 level = null;
                 return;
             }
-            if (level.player2Score >= Level.TARGET_SCORE) {
+    		
+    		if (level.player2Score >= Level.TARGET_SCORE) {
                 addMenu(new WinMenu(GAME_WIDTH, GAME_HEIGHT, 2));
                 level = null;
                 return;
             }
-        }
+    	}
+    	
         if (packetLink != null) {
             packetLink.tick();
         }
-        if (level != null) {
-            if (synchronizer.preTurn()) {
-                synchronizer.postTurn();
-                for (int index = 0; index < keys.getAll().size(); index++) {
-                    Keys.Key key = keys.getAll().get(index);
-                    boolean nextState = key.nextState;
-                    if (key.isDown != nextState) {
-                        synchronizer.addCommand(new ChangeKeyCommand(index, nextState));
-                    }
-                }
-                keys.tick();
-                for (Keys skeys : synchedKeys) {
-                    skeys.tick();
-                }
-                level.tick();
-            }
-        }
+        
         mouseButtons.setPosition(getMousePosition());
         if (!menuStack.isEmpty()) {
             menuStack.peek().tick(mouseButtons);
@@ -340,17 +346,48 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
             mouseHideTime = 0;
             if (mouseHidden) {
                 mouseHidden = false;
-                setCursor(null);
             }
         }
         if (mouseHideTime < 60) {
             mouseHideTime++;
             if (mouseHideTime == 60) {
-                setCursor(emptyCursor);
                 mouseHidden = true;
             }
         }
         mouseButtons.tick();
+        
+        if (level != null) {
+        	if (synchronizer.preTurn()) {
+        		synchronizer.postTurn();
+        		
+        		
+        		if (!paused) {
+            		for (int index = 0; index < keys.getAll().size(); index++) {
+            			Keys.Key key = keys.getAll().get(index);
+            			boolean nextState = key.nextState;
+            			if (key.isDown != nextState) {
+            				synchronizer.addCommand(new ChangeKeyCommand(index, nextState));
+            			}
+            		}
+            		
+            		keys.tick();
+            		for (Keys skeys : synchedKeys) {
+            			skeys.tick();
+            		}
+            		
+            		if (keys.escape.wasPressed()) {
+            			keys.release();
+            			synchronizer.addCommand(new PauseCommand(true));
+            		}
+            		
+            		if (!mouseHidden) {
+            			player.setAimByMouse( ( ( mouseButtons.getX() / SCALE ) - ( screen.w / 2 ) ), ( ( ( mouseButtons.getY() / SCALE ) + 24 ) - ( screen.h / 2 ) ) );
+            		}
+            		else player.setAimByKeyboard();
+            		level.tick();
+            	}
+        	}
+        }
 
         if (createServerState == 1) {
             createServerState = 2;
@@ -378,6 +415,7 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+        frame.setTitle("Catacomb Snatch");
         mc.start();
     }
 
@@ -386,6 +424,13 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
         if (packet instanceof ChangeKeyCommand) {
             ChangeKeyCommand ckc = (ChangeKeyCommand) packet;
             synchedKeys[playerId].getAll().get(ckc.getKey()).nextState = ckc.getNextState();
+        }
+        
+        if (packet instanceof PauseCommand) {
+        	PauseCommand pc = (PauseCommand) packet;
+        	paused = pc.isPause();
+        	if (paused) addMenu(new PauseMenu(GAME_WIDTH, GAME_HEIGHT));
+        	else popMenu();
         }
     }
 
@@ -397,99 +442,6 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
             }
         } else if (packet instanceof TurnPacket) {
             synchronizer.onTurnPacket((TurnPacket) packet);
-        }
-    }
-
-    public void buttonPressed(Button button) {
-        if (button.getId() == TitleMenu.RESTART_GAME_ID) {
-            clearMenus();
-            TitleMenu menu = new TitleMenu(GAME_WIDTH, GAME_HEIGHT);
-            addMenu(menu);
-
-
-        } else if (button.getId() == TitleMenu.START_GAME_ID) {
-            clearMenus();
-            isMultiplayer = false;
-
-            localId = 0;
-            synchronizer = new TurnSynchronizer(this, null, 0, 1);
-            synchronizer.setStarted(true);
-
-            createLevel();
-        } else if (button.getId() == TitleMenu.HOST_GAME_ID) {
-            addMenu(new HostingWaitMenu());
-            isMultiplayer = true;
-            isServer = true;
-            try {
-                if (isServer) {
-                    localId = 0;
-                    serverSocket = new ServerSocket(3000);
-                    serverSocket.setSoTimeout(1000);
-
-                    hostThread = new Thread() {
-
-                        public void run() {
-                            boolean fail = true;
-                            try {
-                                while (!isInterrupted()) {
-                                    Socket socket = null;
-                                    try {
-                                        socket = serverSocket.accept();
-                                    } catch (SocketTimeoutException e) {
-
-                                    }
-                                    if (socket == null) {
-                                        System.out.println("asdf");
-                                        continue;
-                                    }
-                                    fail = false;
-
-                                    packetLink = new NetworkPacketLink(socket);
-
-                                    createServerState = 1;
-                                    break;
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            if (fail) {
-                                try {
-                                    serverSocket.close();
-                                } catch (IOException e) {
-                                }
-                            }
-                        };
-                    };
-                    hostThread.start();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if (button.getId() == TitleMenu.JOIN_GAME_ID) {
-            addMenu(new JoinGameMenu());
-        } else if (button.getId() == TitleMenu.CANCEL_JOIN_ID) {
-            popMenu();
-            if (hostThread != null) {
-                hostThread.interrupt();
-                hostThread = null;
-            }
-        } else if (button.getId() == TitleMenu.PERFORM_JOIN_ID) {
-            menuStack.clear();
-            isMultiplayer = true;
-            isServer = false;
-
-            try {
-                localId = 1;
-                packetLink = new ClientSidePacketLink(TitleMenu.ip, 3000);
-                synchronizer = new TurnSynchronizer(this, packetLink, localId, 2);
-                packetLink.setPacketListener(this);
-            } catch (Exception e) {
-                e.printStackTrace();
-//                System.exit(1);
-                addMenu(new TitleMenu(GAME_WIDTH, GAME_HEIGHT));
-            }
-        } else if (button.getId() == TitleMenu.EXIT_GAME_ID) {
-            System.exit(0);
         }
     }
 
@@ -527,5 +479,110 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
             menuStack.peek().keyTyped(e);
         }
     }
+
+	@Override
+	public void buttonPressed(ClickableComponent component) {
+		if (component instanceof Button) {
+			Button button = (Button) component;
+			if (button.getId() == TitleMenu.RESTART_GAME_ID) {
+	            clearMenus();
+	            TitleMenu menu = new TitleMenu(GAME_WIDTH, GAME_HEIGHT);
+	            addMenu(menu);
+
+
+	        } else if (button.getId() == TitleMenu.START_GAME_ID) {
+	            clearMenus();
+	            isMultiplayer = false;
+
+	            localId = 0;
+	            synchronizer = new TurnSynchronizer(this, null, 0, 1);
+	            synchronizer.setStarted(true);
+
+	            createLevel();
+	            paused = false;
+	        } else if (button.getId() == TitleMenu.HOST_GAME_ID) {
+	            addMenu(new HostingWaitMenu());
+	            isMultiplayer = true;
+	            isServer = true;
+	            try {
+	                if (isServer) {
+	                    localId = 0;
+	                    serverSocket = new ServerSocket(3000);
+	                    serverSocket.setSoTimeout(1000);
+
+	                    hostThread = new Thread() {
+
+	                        public void run() {
+	                            boolean fail = true;
+	                            try {
+	                                while (!isInterrupted()) {
+	                                    Socket socket = null;
+	                                    try {
+	                                        socket = serverSocket.accept();
+	                                    } catch (SocketTimeoutException e) {
+
+	                                    }
+	                                    if (socket == null) {
+	                                        System.out.println("asdf");
+	                                        continue;
+	                                    }
+	                                    fail = false;
+
+	                                    packetLink = new NetworkPacketLink(socket);
+
+	                                    createServerState = 1;
+	                                    break;
+	                                }
+	                            } catch (Exception e) {
+	                                e.printStackTrace();
+	                            }
+	                            if (fail) {
+	                                try {
+	                                    serverSocket.close();
+	                                } catch (IOException e) {
+	                                }
+	                            }
+	                        };
+	                    };
+	                    hostThread.start();
+	                }
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            }
+	        } else if (button.getId() == TitleMenu.JOIN_GAME_ID) {
+	            addMenu(new JoinGameMenu());
+	        } else if (button.getId() == TitleMenu.CANCEL_JOIN_ID) {
+	            popMenu();
+	            if (hostThread != null) {
+	                hostThread.interrupt();
+	                hostThread = null;
+	            }
+	        } else if (button.getId() == TitleMenu.PERFORM_JOIN_ID) {
+	            menuStack.clear();
+	            isMultiplayer = true;
+	            isServer = false;
+
+	            try {
+	                localId = 1;
+	                packetLink = new ClientSidePacketLink(TitleMenu.ip, 3000);
+	                synchronizer = new TurnSynchronizer(this, packetLink, localId, 2);
+	                packetLink.setPacketListener(this);
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                addMenu(new TitleMenu(GAME_WIDTH, GAME_HEIGHT));
+	            }
+	        } else if (button.getId() == TitleMenu.EXIT_GAME_ID) {
+	            System.exit(0);
+	        } else if (button.getId() == TitleMenu.RETURN_ID) {
+	        	synchronizer.addCommand(new PauseCommand(false));
+	        	keys.tick();
+	        } else if (button.getId() == TitleMenu.RETURN_TO_TITLESCREEN) {
+	        	clearMenus();
+				TitleMenu menu = new TitleMenu(GAME_WIDTH, GAME_HEIGHT);
+				addMenu(menu);
+				level = null;
+	        }
+		}
+	}
 
 }

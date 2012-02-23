@@ -9,7 +9,7 @@ public class HostingWaitMenu extends GuiMenu {
     public HostingWaitMenu() {
         super();
 
-        addButton(new Button(TitleMenu.CANCEL_JOIN_ID, 4, 250, 180));
+        addButton(new Button(TitleMenu.CANCEL_JOIN_ID, "Cancel", 250, 180));
     }
 
     @Override
@@ -29,6 +29,12 @@ public class HostingWaitMenu extends GuiMenu {
 
     public void keyTyped(KeyEvent arg0) {
     }
+
+	@Override
+	public void buttonPressed(ClickableComponent button) {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }

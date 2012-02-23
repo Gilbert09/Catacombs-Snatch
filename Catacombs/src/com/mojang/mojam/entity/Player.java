@@ -25,7 +25,10 @@ public class Player extends Mob implements LootCollector {
     private int damage = 1;
     
     public Keys keys;
-    public double xAim, yAim = 1;
+    public MouseButtons mouseButtons;
+    public int mouseFireButton = 1;
+    public Vec2 aimVector;
+    private boolean mouseAiming;
     public int shootDelay = 5;
     public double xd, yd;
     public int takeDelay = 0;
@@ -49,18 +52,22 @@ public class Player extends Mob implements LootCollector {
     private double muzzleY = 0;
     private int muzzleImage = 0;
     private double pushBack = 0;
+    private int suckingRadius = 60;
 
     private int nextWalkSmokeTick = 0;
 
     private int regenDelay = 0;
 
-    public Player(Keys keys, int x, int y, int team) {
+    public Player(Keys keys, MouseButtons mouseButtons, int x, int y, int team) {
         super(x, y, team);
         this.keys = keys;
+        this.mouseButtons = mouseButtons;
 
         startX = x;
         startY = y;
 
+        aimVector = new Vec2(0, 1);
+        
         score = 0;
 
     }
@@ -112,13 +119,10 @@ public class Player extends Mob implements LootCollector {
             xa++;
         }
         
-        //!keys.fire.isDown && 
-        if (xa * xa + ya * ya != 0) {
-            xAim *= 0.7;
-            yAim *= 0.7;
-            xAim += xa;
-            yAim += ya;
-            facing = (int) ((Math.atan2(-xAim, yAim) * 8 / (Math.PI * 2) + 8.5)) & 7;
+        if (!mouseAiming && !keys.fire.isDown && !mouseButtons.isDown(mouseFireButton) && xa * xa + ya * ya != 0) {
+        	aimVector.set(xa, ya);
+        	aimVector.normalizeSelf();
+        	updateFacing();
         }
 
         if (xa != 0 || ya != 0) {
@@ -175,13 +179,13 @@ public class Player extends Mob implements LootCollector {
         
         
         
-        if (carrying == null && keys.fire.isDown) {
+        if (carrying == null && keys.fire.isDown || carrying == null && mouseButtons.isDown(mouseFireButton)) {
             wasShooting = true;
             if (takeDelay > 0) {
                 takeDelay--;
             }
             if (shootDelay-- <= 0) {
-                double dir = Math.atan2(yAim, xAim) + (TurnSynchronizer.synchedRandom.nextFloat() - TurnSynchronizer.synchedRandom.nextFloat()) * 0.1;
+            	double dir = Math.atan2(aimVector.y, aimVector.x) + (TurnSynchronizer.synchedRandom.nextFloat() - TurnSynchronizer.synchedRandom.nextFloat()) * 0.1;
                 xa = Math.cos(dir);
             	ya = Math.sin(dir);
                 
@@ -200,10 +204,10 @@ public class Player extends Mob implements LootCollector {
             }
         } else {
             if (wasShooting) {
-                suckRadius = 60;
+                suckRadius = suckingRadius;
             }
             wasShooting = false;
-            if (suckRadius > 0) {
+            if (suckRadius > suckingRadius) {
                 suckRadius--;
             }
             takeDelay = 15;
@@ -259,8 +263,8 @@ public class Player extends Mob implements LootCollector {
  */
                 if (allowed && (!(carrying instanceof IUsable) || (carrying instanceof IUsable && ((IUsable) carrying).isAllowedToCancel()))) {
                     carrying.removed = false;
-                    carrying.xSlide = xAim * 3;
-                    carrying.ySlide = yAim * 3;
+                    carrying.xSlide = aimVector.x * 5;
+                    carrying.ySlide = aimVector.y * 5;
                     carrying.freezeTime = 10;
                     carrying.setPos(buildPos.x, buildPos.y);
                     level.addEntity(carrying);
@@ -476,6 +480,21 @@ public class Player extends Mob implements LootCollector {
         return "/sound/Death.wav";
     }
     
+    public void setAimByMouse(int x, int y) {
+    	mouseAiming = true;
+    	aimVector.set(x, y);
+    	aimVector.normalizeSelf();
+    	updateFacing();
+    }
+    
+    public void setAimByKeyboard() {
+    	mouseAiming = false;
+    }
+    
+    public void updateFacing() {
+    	facing = (int) ((Math.atan2(-aimVector.x, aimVector.y) * 8 / (Math.PI * 2) + 8.5)) & 7;
+    }
+    
     public void setImmortal(boolean immortal) {
     	isImmortal = immortal;
     }
@@ -494,5 +513,13 @@ public class Player extends Mob implements LootCollector {
     
     public double getPushBack() {
     	return this.pushBack;
+    }
+    
+    public int getSuckingRadius() {
+    	return suckingRadius;
+    }
+    
+    public void setSuckingRadius(int radius) {
+    	suckingRadius = radius;
     }
 }

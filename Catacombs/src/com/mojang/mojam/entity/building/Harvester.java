@@ -87,6 +87,26 @@ public class Harvester extends Building implements LootCollector {
             dropAllMoney();
         }
     }
+    
+    private void addHealthBar(Screen screen) {
+    	int barWidth = 30;
+    	int barHeight = 2;
+    	int start = health * barWidth / maxHealth;
+    	Bitmap bar = new Bitmap(barWidth, barHeight);
+    	bar.clear(0xff00ff00);
+    	bar.fill(start, 0, barWidth - start, barHeight, 0xffff0000);
+    	screen.blit(bar, pos.x - (barWidth / 2), pos.y + 10);
+    }
+    
+    private void addCapacityBar(Screen screen) {
+    	int barWidth = 30;
+    	int barHeight = 2;
+    	int start = money * barWidth / capacity;
+    	Bitmap bar = new Bitmap(barWidth, barHeight);
+    	bar.clear(0xff00ff00);
+    	bar.fill(start, 0, barWidth - start, barHeight, 0xffffff00);
+    	screen.blit(bar, pos.x - (barWidth / 2), pos.y + 14);
+    }
 
     @Override
     public Bitmap getSprite() {
@@ -141,6 +161,8 @@ public class Harvester extends Building implements LootCollector {
         } else {
             screen.blit(image, pos.x - image.w / 2, pos.y - image.h + 8);
         }
+        addHealthBar(screen);
+        addCapacityBar(screen);
     }
 
     public void take(Loot loot) {

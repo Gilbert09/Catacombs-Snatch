@@ -53,9 +53,11 @@ public class Art {
     public static Bitmap[][] shineSmall = cut("/pickup/effect_shine_small_13.png", 13, 13);
     public static Bitmap[][] shineBig = cut("/pickup/effect_shine_big_13.png", 13, 13);
 
+    public static Bitmap[][] button = cut("/art/screen/button.png", 128, 24);
+    
     public static Bitmap bomb = load("/bomb.png");
     public static Bitmap points = load("/points.png");
-    public static Bitmap upgradesBg = load("/upgrades_bg.png");
+    public static Bitmap upgradesBg = load("/empty_background.png");
 
     public static Bitmap[][] fxEnemyDie = cut("/effects/fx_enemydie_64.png", 64, 64);
     public static Bitmap[][] fxSteam24 = cut("/effects/fx_steam1_24.png", 24, 24);

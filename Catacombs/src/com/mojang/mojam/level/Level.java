@@ -85,7 +85,7 @@ public class Level {
 
         int[] rgbs = new int[w * h];
         Arrays.fill(rgbs, 0xffA8A800);
-
+        
         for (int y = 0 + 4; y < h - 4; y++) {
             for (int x = 31 - 3; x < 32 + 3; x++) {
                 rgbs[x + y * w] = 0xff888800;
@@ -382,30 +382,29 @@ public class Level {
 
         screen.setOffset(-xScroll, -yScroll);
 
-        for (int y = y0; y <= y1; y++) {
-            for (int x = x0; x <= x1; x++) {
-                if (x < 0 || x >= width || y < 0 || y >= height) {
-                    screen.blit(Art.floorTiles[5][0], x * Tile.WIDTH, y * Tile.HEIGHT);
-                    continue;
-                }
-                int xt = x - 27;
-                int yt = y - 4;
-                if (xt >= 0 && yt >= 0 && xt < 9 && yt < 4 && (xt != 3 || yt < 3)) {
-                    screen.blit(Art.startHerrSpeck[xt][yt], x * Tile.WIDTH, y * Tile.HEIGHT);
-                    continue;
-                }
+		for (int y = y0; y <= y1; y++) {
+			for (int x = x0; x <= x1; x++) {
+				if (x < 0 || x >= width || y < 0 || y >= height) {
+					screen.blit(Art.floorTiles[5][0], x * Tile.WIDTH, y * Tile.HEIGHT);
+					continue;
+				}
+				int xt = x - 27;
+				int yt = y - 4;
+				if (xt >= 0 && yt >= 0 && xt < 9 && yt < 4 && (xt != 4 || yt < 3)) {
+					screen.blit(Art.startHerrSpeck[xt][yt], x * Tile.WIDTH, y * Tile.HEIGHT);
+					continue;
+				}
 
-                yt = y - (64 - 8);
-                //xt -= 1;
-                if (xt >= 0 && yt >= 0 && xt < 9 && yt < 4 && (xt != 3 || yt > 0)) {
-                    screen.blit(Art.startLordLard[xt][yt], x * Tile.WIDTH, y * Tile.HEIGHT);
-                    continue;
-                }
-                if (canSee(x, y)) {
-                    tiles[x + y * width].render(screen);
-                }
-            }
-        }
+				yt = y - (64 - 8);
+				if (xt >= 0 && yt >= 0 && xt < 9 && yt < 4 && (xt != 4 || yt > 0)) {
+					screen.blit(Art.startLordLard[xt][yt], x * Tile.WIDTH, y * Tile.HEIGHT);
+					continue;
+				}
+				if (canSee(x, y)) {
+					tiles[x + y * width].render(screen);
+				}
+			}
+		}
 
         for (Entity e : visibleEntities) {
             e.render(screen);

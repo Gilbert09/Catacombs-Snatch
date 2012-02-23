@@ -21,7 +21,7 @@ public class ShopItem extends Building {
     public static final int SHOP_POINT = 3;
 
     public static final int[] COST = {
-            150, 300, 500, 0
+            150, 0, 500, 0
     };
 
     private final int type;

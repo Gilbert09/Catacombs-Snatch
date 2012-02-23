@@ -5,82 +5,31 @@ import java.util.*;
 import com.mojang.mojam.MouseButtons;
 import com.mojang.mojam.screen.*;
 
-public class Button extends GuiComponent {
-
-    private List<ButtonListener> listeners;
-
-    private boolean isPressed;
-
-    private final int x;
-    private final int y;
-    private final int w;
-    private final int h;
+public class Button extends ClickableComponent {
 
     private final int id;
-
-    private int ix;
-
-    private int iy;
-    private boolean performClick = false;
-
-    public Button(int id, int buttonImageIndex, int x, int y) {
+    private String label;
+    
+    public Button(int id, String label, int x, int y) {
+    	super(x, y, 128, 24);
         this.id = id;
-        this.x = x;
-        this.y = y;
-        this.w = 128;
-        this.h = 24;
-        this.ix = buttonImageIndex % 2;
-        this.iy = buttonImageIndex / 2;
+        this.label = label;
     }
-
+    
     @Override
-    public void tick(MouseButtons mouseButtons) {
-        super.tick(mouseButtons);
-
-        int mx = mouseButtons.getX() / 2;
-        int my = mouseButtons.getY() / 2;
-        isPressed = false;
-        if (mx >= x && my >= y && mx < (x + w) && my < (y + h)) {
-            if (mouseButtons.isRelased(1)) {
-                postClick();
-            } else if (mouseButtons.isDown(1)) {
-                isPressed = true;
-            }
-        }
-
-        if (performClick) {
-            if (listeners != null) {
-                for (ButtonListener listener : listeners) {
-                    listener.buttonPressed(this);
-                }
-            }
-            performClick = false;
-        }
-    }
-
-    public void postClick() {
-        performClick = true;
+    protected void clicked(MouseButtons mouseButtons) {
+    	
     }
 
     @Override
     public void render(Screen screen) {
 
-        if (isPressed) {
-            screen.blit(Art.buttons[ix][iy * 2 + 1], x, y);
+        if (isPressed()) {
+            screen.blit(Art.button[0][1], getX(), getY());
         } else {
-            screen.blit(Art.buttons[ix][iy * 2 + 0], x, y);
+        	screen.blit(Art.button[0][0], getX(), getY());
         }
-    }
-
-    public boolean isPressed() {
-        return isPressed;
-    }
-
-    public void addListener(ButtonListener listener) {
-        if (listeners == null) {
-            listeners = new ArrayList<ButtonListener>();
-        }
-        listeners.add(listener);
+        Font.drawCentered(screen, label, getX() + getW() / 2, getY() + getH() / 2);
     }
 
     public int getId() {

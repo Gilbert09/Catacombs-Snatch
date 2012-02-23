@@ -22,4 +22,9 @@ public class Font {
             x += 8;
         }
     }
+    
+    public static void drawCentered(Screen screen, String msg, int x, int y) {
+		int width = getStringWidth(msg);
+		draw(screen, msg, x - width / 2, y - 4);
+	}
 }
