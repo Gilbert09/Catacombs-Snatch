@@ -10,7 +10,7 @@ public class Bat extends Mob {
     public Bat(double x, double y) {
         super(x, y, Team.Neutral);
         setPos(x, y);
-        setStartHealth(1);
+        setStartHealth(2);
         dir = TurnSynchronizer.synchedRandom.nextDouble() * Math.PI * 2;
         minimapColor = 0xffff0000;
         yOffs = 5;

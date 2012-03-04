@@ -41,7 +41,7 @@ public class GamePowers extends GuiMenu {
 		Font.draw(screen, "Remove Push Back", 55, 105);
 		Font.draw(screen, "Increase Loot Range", 55, 155);
 		
-		Iterator<com.mojang.mojam.gui.GamePowers.Note> it = notes.iterator();
+		Iterator<Note> it = notes.iterator();
         while (it.hasNext()) {
             Note note = (Note) it.next();
             Font.draw(screen, note.message, (MojamComponent.GAME_WIDTH / 2) - (Font.getStringWidth(note.message) / 2), MojamComponent.GAME_HEIGHT - 72);
@@ -93,7 +93,7 @@ public class GamePowers extends GuiMenu {
 
         public void tick() {
             if (life-- <= 0) {
-                GamePowers.notes.remove(this);
+                notes.remove(this);
             }
         }
     }
@@ -115,6 +115,7 @@ public class GamePowers extends GuiMenu {
 					}
 					else notes.add(new Note("You do not have enough money", 150));
 				} else if (button.getId() == 997) {
+					/*
 					if (player.getPushBack() != 1) {
 						if (player.useMoney(2000)) {
 							player.setPushBack(1);
@@ -122,6 +123,8 @@ public class GamePowers extends GuiMenu {
 						}
 						else notes.add(new Note("You do not have enough money", 150));
 					}
+					*/
+					//TODO Change player.pushBack to weapon.pushback
 				} else if (button.getId() == 996) {
 					if (player.useMoney(1000)) {
 						player.setSuckingRadius(player.getSuckingRadius() + 20);

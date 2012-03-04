@@ -19,6 +19,7 @@ import com.mojang.mojam.level.Level;
 import com.mojang.mojam.level.tile.Tile;
 import com.mojang.mojam.network.*;
 import com.mojang.mojam.network.packet.*;
+import com.mojang.mojam.screen.Art;
 import com.mojang.mojam.screen.Bitmap;
 import com.mojang.mojam.screen.Screen;
 import com.mojang.mojam.sound.SoundPlayer;
@@ -280,6 +281,8 @@ public class MojamComponent extends Canvas implements Runnable, MouseMotionListe
 //            }
 //        }
         if (player != null && menuStack.size() == 0) {
+            
+            //screen.blit(Art.healthBar[0][(int) (45 - (player.health * 4.5))], 340, screen.h - 18);
             Font.draw(screen, player.health + " / 10", 340, screen.h - 19);
             Font.draw(screen, "" + player.score, 340, screen.h - 33);
         }

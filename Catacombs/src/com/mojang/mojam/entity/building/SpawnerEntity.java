@@ -1,10 +1,8 @@
 package com.mojang.mojam.entity.building;
 
-import com.mojang.mojam.entity.animation.SmokeAnimation;
 import com.mojang.mojam.entity.mob.*;
 import com.mojang.mojam.network.TurnSynchronizer;
 import com.mojang.mojam.screen.*;
-
 
 public class SpawnerEntity extends Building {
     public static final int SPAWN_INTERVAL = 60 * 4;
@@ -17,7 +15,7 @@ public class SpawnerEntity extends Building {
         super(x, y, team);
 
         this.type = type;
-        setStartHealth(20);
+        setStartHealth(30);
         freezeTime = 10;
         spawnTime = TurnSynchronizer.synchedRandom.nextInt(SPAWN_INTERVAL);
         minimapIcon = 4;

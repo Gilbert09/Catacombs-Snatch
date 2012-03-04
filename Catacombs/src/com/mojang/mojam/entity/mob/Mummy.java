@@ -12,7 +12,7 @@ public class Mummy extends Mob {
     public Mummy(double x, double y) {
         super(x, y, Team.Neutral);
         setPos(x, y);
-        setStartHealth(7);
+        setStartHealth(12);
         dir = TurnSynchronizer.synchedRandom.nextDouble() * Math.PI * 2;
         minimapColor = 0xffff0000;
         yOffs = 10;

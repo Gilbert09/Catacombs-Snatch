@@ -162,8 +162,8 @@ public abstract class Mob extends Entity {
         if (isImmortal) return;
 
         if (freezeTime <= 0) {
-            hurtTime = 40;
-            freezeTime = 5;
+            hurtTime = 60;
+            freezeTime = 3;
             health -= bullet.damage;
             if (bullet != null) {
                 xBump = bullet.xa / 5.0;

@@ -12,7 +12,7 @@ public class Snake extends Mob {
     public Snake(double x, double y) {
         super(x, y, Team.Neutral);
         setPos(x, y);
-        setStartHealth(3);
+        setStartHealth(5);
         dir = TurnSynchronizer.synchedRandom.nextDouble() * Math.PI * 2;
         minimapColor = 0xffff0000;
         yOffs = 10;

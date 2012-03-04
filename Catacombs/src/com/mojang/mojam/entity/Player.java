@@ -8,6 +8,9 @@ import com.mojang.mojam.entity.building.Building;
 import com.mojang.mojam.entity.loot.*;
 import com.mojang.mojam.entity.mob.*;
 import com.mojang.mojam.entity.particle.Sparkle;
+import com.mojang.mojam.entity.weapon.Rifle;
+import com.mojang.mojam.entity.weapon.Sniper;
+import com.mojang.mojam.entity.weapon.Weapon;
 import com.mojang.mojam.gui.Notifications;
 import com.mojang.mojam.level.tile.*;
 import com.mojang.mojam.math.Vec2;
@@ -47,12 +50,13 @@ public class Player extends Mob implements LootCollector {
     private boolean isSeeing;
     private int startX;
     private int startY;
-    private int muzzleTicks = 0;
-    private double muzzleX = 0;
-    private double muzzleY = 0;
+    public int muzzleTicks = 0;
+    public double muzzleX = 0;
+    public double muzzleY = 0;
     private int muzzleImage = 0;
-    private double pushBack = 0;
+    //public double pushBack = 0;
     private int suckingRadius = 60;
+    private Weapon currentWeapon;
 
     private int nextWalkSmokeTick = 0;
 
@@ -67,9 +71,8 @@ public class Player extends Mob implements LootCollector {
         startY = y;
 
         aimVector = new Vec2(0, 1);
-        
+        currentWeapon = new Rifle(this);
         score = 0;
-
     }
 
     public void tick() {
@@ -185,22 +188,7 @@ public class Player extends Mob implements LootCollector {
                 takeDelay--;
             }
             if (shootDelay-- <= 0) {
-            	double dir = Math.atan2(aimVector.y, aimVector.x) + (TurnSynchronizer.synchedRandom.nextFloat() - TurnSynchronizer.synchedRandom.nextFloat()) * 0.1;
-                xa = Math.cos(dir);
-            	ya = Math.sin(dir);
-                
-                if (pushBack == 0) {
-                	xd -= xa;
-                    yd -= ya;
-                }
-                
-                Entity bullet = new Bullet(this, xa, ya, damage * damageMultiplier);
-                level.addEntity(bullet);
-                muzzleTicks = 3;
-                muzzleX = bullet.pos.x + 7 * xa - 8;
-                muzzleY = bullet.pos.y + 5 * ya - 8 + 1;
-                shootDelay = 5;
-                MojamComponent.soundPlayer.playSound("/sound/Shot 1.wav", (float) pos.x, (float) pos.y);
+            	currentWeapon.shoot();
             }
         } else {
             if (wasShooting) {
@@ -211,7 +199,7 @@ public class Player extends Mob implements LootCollector {
                 suckRadius--;
             }
             takeDelay = 15;
-            shootDelay = 0;
+            shootDelay--;
         }
 
         int x = (int) pos.x / Tile.WIDTH;
@@ -506,20 +494,16 @@ public class Player extends Mob implements LootCollector {
     public double getDamageMultiplier() {
     	return this.damageMultiplier;
     }
-    
-    public void setPushBack(double pushBack) {
-    	this.pushBack = pushBack;
-    }
-    
-    public double getPushBack() {
-    	return this.pushBack;
-    }
-    
+
     public int getSuckingRadius() {
     	return suckingRadius;
     }
     
     public void setSuckingRadius(int radius) {
     	suckingRadius = radius;
+    }
+    
+    public void setCurrentWeapon(Weapon weapon) {
+    	currentWeapon = weapon;
     }
 }

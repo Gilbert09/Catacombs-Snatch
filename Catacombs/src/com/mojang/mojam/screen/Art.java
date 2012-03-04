@@ -58,6 +58,9 @@ public class Art {
     public static Bitmap bomb = load("/bomb.png");
     public static Bitmap points = load("/points.png");
     public static Bitmap upgradesBg = load("/empty_background.png");
+    public static Bitmap[][] weaponStats100 = cut("/weapon_stats100.png", 70, 6);
+    public static Bitmap[][] weaponStats45 = cut("/weapon_stats45.png", 70, 6);
+    public static Bitmap weaponBg = load("/weapon_bg.png");
 
     public static Bitmap[][] fxEnemyDie = cut("/effects/fx_enemydie_64.png", 64, 64);
     public static Bitmap[][] fxSteam24 = cut("/effects/fx_steam1_24.png", 24, 24);
